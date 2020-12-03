@@ -36,9 +36,7 @@ equations in `Stan`.
 
 # Introduction
 
-The following markdown file is inspired by the case study [Bayesian
-workflow for disease transmission modeling in
-Stan](https://mc-stan.org/users/documentation/case-studies/boarding_school_case_study.html).
+The following markdown file is inspired by a Stan case study\[1\]
 
 ## Outline
 
@@ -841,7 +839,8 @@ fit_sir_negbin <- sampling(model,
 `Stan` gives us information to evaluate whether the statistical
 inference is reliable. First we start with a summary table of the
 results for the parameter of interest. Additionally we will see some
-useful diagnostics, like `Rhat` and the effective sample size.
+useful diagnostics, like `Rhat` and the effective sample size, which we
+briefly explain afterwards.
 
 ``` r
 pars=c('beta', 'gamma', "R0", "recovery_time")
@@ -858,7 +857,7 @@ print(fit_sir_negbin, pars = pars)
     ## R0            3.22    0.01 0.28 2.74 3.04 3.20 3.38  3.83  2116    1
     ## recovery_time 1.86    0.00 0.16 1.56 1.75 1.85 1.95  2.21  2648    1
     ## 
-    ## Samples were drawn using NUTS(diag_e) at Thu Dec 03 17:12:45 2020.
+    ## Samples were drawn using NUTS(diag_e) at Thu Dec 03 18:43:37 2020.
     ## For each parameter, n_eff is a crude measure of effective sample size,
     ## and Rhat is the potential scale reduction factor on split chains (at 
     ## convergence, Rhat=1).
@@ -1049,4 +1048,5 @@ if advanced, review on the subject can be found in Roberts and Rosenthal
 
 # References
 
-TBD
+1.  “Bayesian workflow for disease transmission modeling in Stan”,
+    <https://mc-stan.org/users/documentation/case-studies/boarding_school_case_study.html>

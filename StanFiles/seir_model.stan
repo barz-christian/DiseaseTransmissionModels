@@ -52,12 +52,13 @@ parameters {
 }
 
 transformed parameters{
-  real y[n_days, 3];
+  real y[n_days, 4];
   real phi = 1. / phi_inv;
   {
-    real theta[2];
+    real theta[3];
     theta[1] = beta;
-    theta[2] = gamma;
+    theta[2] = alpha;
+    theta[3] = gamma;
 
     y = integrate_ode_rk45(seir, y0, t0, ts, theta, x_r, x_i);
   }
@@ -66,18 +67,18 @@ transformed parameters{
 model {
   //priors
   beta ~ normal(2, 1);
-  alpha ~ uniform(0,21);
+  alpha ~ uniform(1,21);
   gamma ~ normal(0.4, 0.5);
   phi_inv ~ exponential(5);
   
   //sampling distribution
   //col(matrix x, int n) - The n-th column of matrix x. Here the number of infected people 
-  cases ~ neg_binomial_2(col(to_matrix(y), 2), phi);
+  cases ~ neg_binomial_2(col(to_matrix(y), 3), phi);
 }
 
 generated quantities {
   real R0 = beta / gamma;
   real recovery_time = 1 / gamma;
   real pred_cases[n_days];
-  pred_cases = neg_binomial_2_rng(col(to_matrix(y), 2), phi);
+  pred_cases = neg_binomial_2_rng(col(to_matrix(y), 3), phi);
 }

@@ -1,7 +1,7 @@
 ---
 title: "A SEIR model"
 author: "Christian Barz"
-date: "creation date: 29-07-2020, update date: `r lubridate::today()`"
+date: "creation date: 03-12-2020, update date: `r lubridate::today()`"
 output:
   html_document:
     fig_caption: yes
@@ -24,12 +24,20 @@ knitr::opts_chunk$set(fig.path="Figs/", message=FALSE, warning=FALSE,
 
 The following markdown file is inspired by the SIR model from [Bayesian workflow for disease transmission modeling in Stan](https://mc-stan.org/users/documentation/case-studies/boarding_school_case_study.html).
 
+# To Do's
 
-## goal
+- [ ] finish document
+- [ ] model transmission rate $\beta=pc$, where $p$ is the transmission probability and $c$ is the contact rate
 
-The goal is to implement a SEIR model in which the parameters are determined
+
+
+## goals
+
+1. The goal is to implement a SEIR model in which the parameters are determined
 by a bayesian approach.
 
+2. Because I have no medical background knowlegde I like to test how good the
+incubation time of influenza can be estimated using this approach.
 
 ## setup and reproducibility
 
@@ -95,7 +103,11 @@ $$
 
 ### &beta
 
+Für die Transmissionsrate (Übertragungsrate) ist auch die Bezeichnung Kontaktrate geläufig. Eine genauere Überlegung zerlegt diese in ein Produkt $\beta = p\cdot c$ , wobei $p$ die Transmissionswahrscheinlichkeit und $c$ die eigentliche Kontaktrate ist.
+
 ### $\alpha$
+
+Latenzzeit
 
 ### $\gamma$
 
@@ -138,12 +150,12 @@ y0 = c(S = s0, E = e0, I = i0, R = r0)
 data_sir <- list(n_days = n_days, y0 = y0, t0 = t0, ts = t, N = N, cases = cases)
 
 # number of MCMC steps
-niter <- 2000
+niter <- 4000
 ```
 
 We compile the model an draw samples:
 
-```{r cache=TRUE}
+```{r compile model and draw samples, cache=TRUE}
 model <- stan_model("./StanFiles/seir_model.stan")
 
 SEIR_samples <- sampling(model,
@@ -163,12 +175,12 @@ print(SEIR_samples, pars = pars)
 Let us briefly discuss the output above :
 
 - The Gelman-Rubin diagnositc `Rhat` is close to 1, which is a necessary condition for convergence. According to [Brooks and Gelman, 1998]("General methods for monitoring convergence of iterative simulations. Journal of Computational and Graphical Statistics 7: 434–455") an `Rhat`value bigger than 1,2 for any of the model parameters should indicate nonconvergence
-- The effective sample size `n_eff` is "large" the marcov chains should have explored the parameter space well.
+- The effective sample size `n_eff` is "low" the marcov chains should have not explored the parameter space well.
 
 Moreover a trace plot can be used to evaluate if the chains were able to explore the parameter space or got stuck in an area:
 
 ```{r traceplot}
-traceplot(SEIR_samples, pars = pars)
+traceplot(SEIR_samples, pars = pars, inc_warmup = TRUE)
 ```
 
 But we can also check the posterior distribution of our parameters of interest for each marcov chain. Precisely we can check whether they agree with one another or not:

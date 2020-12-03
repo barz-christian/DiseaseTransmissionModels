@@ -28,7 +28,7 @@ Although this note deals with epidemiological questions, it was written to expla
 
 # Introduction {.tabset}
 
-The following markdown file is inspired by the case study [Bayesian workflow for disease transmission modeling in Stan](https://mc-stan.org/users/documentation/case-studies/boarding_school_case_study.html).
+The following markdown file is inspired by a Stan case study^["Bayesian workflow for disease transmission modeling in Stan", https://mc-stan.org/users/documentation/case-studies/boarding_school_case_study.html]
 
 ## Outline 
 
@@ -546,7 +546,7 @@ fit_sir_negbin <- sampling(model,
 
 ## checking the inference
 
-`Stan` gives us information to evaluate whether the statistical inference is reliable. First we start with a summary table of the results for the parameter of interest. Additionally we will see some useful diagnostics, like `Rhat` and the effective sample size.
+`Stan` gives us information to evaluate whether the statistical inference is reliable. First we start with a summary table of the results for the parameter of interest. Additionally we will see some useful diagnostics, like `Rhat` and the effective sample size, which we briefly explain  afterwards.
 
 ```{r basicConvergenceCheck}
 pars=c('beta', 'gamma', "R0", "recovery_time")
@@ -561,7 +561,7 @@ Let us briefly discuss the output above :
 Moreover a trace plot can be used to evaluate if the chains were able to explore the parameter space or got stuck in an area:
 
 ```{r traceplot}
-traceplot(fit_sir_negbin, pars = pars)
+traceplot(fit_sir_negbin, pars = pars, inc_warmup = TRUE)
 ```
 
 But we can also check the posterior distribution of our parameters of interest for each marcov chain. Precisely we can check whether they agree with one another or not:

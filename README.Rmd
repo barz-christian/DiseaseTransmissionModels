@@ -23,11 +23,12 @@ Although this note deals with epidemiological questions, it was written to
 explain how to implement a model based on a system of differential equations in 
 `Stan`.
 
+
 **I still not found a solution to display math symbols in a way like in `latex`**
 
 # Introduction {.tabset}
 
-The following markdown file is inspired by the case study [Bayesian workflow for disease transmission modeling in Stan](https://mc-stan.org/users/documentation/case-studies/boarding_school_case_study.html).
+The following markdown file is inspired by a Stan case study^["Bayesian workflow for disease transmission modeling in Stan", https://mc-stan.org/users/documentation/case-studies/boarding_school_case_study.html]
 
 ## Outline 
 
@@ -542,7 +543,7 @@ fit_sir_negbin <- sampling(model,
 
 ## checking the inference
 
-`Stan` gives us information to evaluate whether the statistical inference is reliable. First we start with a summary table of the results for the parameter of interest. Additionally we will see some useful diagnostics, like `Rhat` and the effective sample size.
+`Stan` gives us information to evaluate whether the statistical inference is reliable. First we start with a summary table of the results for the parameter of interest. Additionally we will see some useful diagnostics, like `Rhat` and the effective sample size, which we briefly explain  afterwards.
 
 ```{r basicConvergenceCheck}
 pars=c('beta', 'gamma', "R0", "recovery_time")
@@ -668,5 +669,3 @@ While there exist many theoretical guarantees for MCMC algorithms, modelers shou
 
 
 # References
-
-TBD
