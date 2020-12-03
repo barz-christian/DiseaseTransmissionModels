@@ -31,6 +31,9 @@ Although this note deals with epidemiological questions, it was written
 to explain how to implement a model based on a system of differential
 equations in `Stan`.
 
+**I still not found a solution to display math symbols in a way like in
+`latex`**
+
 # Introduction
 
 The following markdown file is inspired by the case study [Bayesian
@@ -612,7 +615,7 @@ Note that in our example, because we assume that the total population
 remains constant, the three derivatives
 ![\\frac{dS}{dt},\\frac{dI}{dt},\\frac{dR}{dt}](https://latex.codecogs.com/png.latex?%5Cfrac%7BdS%7D%7Bdt%7D%2C%5Cfrac%7BdI%7D%7Bdt%7D%2C%5Cfrac%7BdR%7D%7Bdt%7D
 "\\frac{dS}{dt},\\frac{dI}{dt},\\frac{dR}{dt}") sum up to
-![0](https://latex.codecogs.com/png.latex?0 "0"). We can use this fact
+![0](https://latex.codecogs.com/png.latex?0 "0"). We can could this fact
 to improve computational efficiency of the `sir` functions by deriving
 the value of
 ![\\frac{dI}{dt}](https://latex.codecogs.com/png.latex?%5Cfrac%7BdI%7D%7Bdt%7D
@@ -620,13 +623,16 @@ the value of
 ![\\frac{dS}{dt}](https://latex.codecogs.com/png.latex?%5Cfrac%7BdS%7D%7Bdt%7D
 "\\frac{dS}{dt}") and
 ![\\frac{dR}{dt}](https://latex.codecogs.com/png.latex?%5Cfrac%7BdR%7D%7Bdt%7D
-"\\frac{dR}{dt}") :
+"\\frac{dR}{dt}") as follows:
 
 ``` 
       real dS_dt = -beta * I * S / N;
       real dR_dt =  gamma * I;
       real dI_dt =  -(dS_dt + dR_dt);
 ```
+
+However we will not use this, because we are interested in presenting
+the main work flow.
 
 ## remaining Stan code blocks
 
@@ -852,7 +858,7 @@ print(fit_sir_negbin, pars = pars)
     ## R0            3.22    0.01 0.28 2.74 3.04 3.20 3.38  3.83  2116    1
     ## recovery_time 1.86    0.00 0.16 1.56 1.75 1.85 1.95  2.21  2648    1
     ## 
-    ## Samples were drawn using NUTS(diag_e) at Thu Dec 03 16:07:20 2020.
+    ## Samples were drawn using NUTS(diag_e) at Thu Dec 03 16:54:43 2020.
     ## For each parameter, n_eff is a crude measure of effective sample size,
     ## and Rhat is the potential scale reduction factor on split chains (at 
     ## convergence, Rhat=1).

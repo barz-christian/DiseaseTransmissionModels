@@ -1638,6 +1638,7 @@ SEIR_model &lt;- &quot;functions {
              real[] x_r, int[] x_i) {
 
       real S = y[1];
+<<<<<<< HEAD
       real E = y[2];
       real I = y[3];
       real R = y[4];
@@ -1653,6 +1654,20 @@ SEIR_model &lt;- &quot;functions {
       real dR_dt =  gamma * I;
       
       return {dS_dt, dE_dt, dI_dt, dR_dt};
+=======
+      real I = y[2];
+      real R = y[3];
+      real N = x_i[1];
+      
+      real beta = theta[1];
+      real gamma = theta[2];
+      
+      real dS_dt = -beta * I * S / N;
+      real dI_dt =  beta * I * S / N - gamma * I;
+      real dR_dt =  gamma * I;
+      
+      return {dS_dt, dI_dt, dR_dt};
+>>>>>>> 21925c68e595a6316fd29edf9f7270cb029c427b
   }
 }
 data {

@@ -325,7 +325,7 @@ with
 
 Now we have all ingredients to solve our ODE.
 
-Note that in our example, because we assume that the total population remains constant, the three derivatives $\frac{dS}{dt},\frac{dI}{dt},\frac{dR}{dt}$ sum up to $0$. We can use this fact to improve computational efficiency of the `sir` functions by deriving the value of $\frac{dI}{dt}$ from $\frac{dS}{dt}$ and $\frac{dR}{dt}$ :
+Note that in our example, because we assume that the total population remains constant, the three derivatives $\frac{dS}{dt},\frac{dI}{dt},\frac{dR}{dt}$ sum up to $0$. We can could this fact to improve computational efficiency of the `sir` functions by deriving the value of $\frac{dI}{dt}$ from $\frac{dS}{dt}$ and $\frac{dR}{dt}$ as follows:
 
 ```
       real dS_dt = -beta * I * S / N;
@@ -333,6 +333,8 @@ Note that in our example, because we assume that the total population remains co
       real dI_dt =  -(dS_dt + dR_dt);
 
 ```
+
+However we will not use this, because we are interested in presenting the main work flow.
 
 ## remaining Stan code blocks
 

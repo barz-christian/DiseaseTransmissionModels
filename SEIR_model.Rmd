@@ -88,6 +88,10 @@ $$
 
 # coding
 
+# theory
+
+## practice
+
 ```{r}
 
 # define model
@@ -114,6 +118,7 @@ SEIR_model <- "functions {
       return {dS_dt, dE_dt, dI_dt, dR_dt};
   }
 }
+
 data {
   int<lower=1> n_days;
   real y0[3];
@@ -122,15 +127,18 @@ data {
   int N;
   int cases[n_days];
 }
+
 transformed data {
   real x_r[0];
   int x_i[1] = { N };
 }
+
 parameters {
   real<lower=0> gamma;
   real<lower=0> beta;
   real<lower=0> phi_inv;
 }
+
 transformed parameters{
   real y[n_days, 3];
   real phi = 1. / phi_inv;
@@ -142,6 +150,7 @@ transformed parameters{
     y = integrate_ode_rk45(sir, y0, t0, ts, theta, x_r, x_i);
   }
 }
+
 model {
   //priors
   beta ~ normal(2, 1);
@@ -152,6 +161,7 @@ model {
   //col(matrix x, int n) - The n-th column of matrix x. Here the number of infected people 
   cases ~ neg_binomial_2(col(to_matrix(y), 2), phi);
 }
+
 generated quantities {
   real R0 = beta / gamma;
   real recovery_time = 1 / gamma;
@@ -162,8 +172,8 @@ generated quantities {
 "
 ```
 
-
 ```{r}
 
 ```
+
 
