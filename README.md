@@ -826,7 +826,7 @@ specified in Stan’s modeling language, which we stored in a file
 `sir_negbin.stan`. This file simply contains above string.
 
 ``` r
-model <- stan_model("sir_negbin.stan")
+model <- stan_model("./StanFiles/sir_negbin.stan")
 ```
 
 ``` r
@@ -858,7 +858,7 @@ print(fit_sir_negbin, pars = pars)
     ## R0            3.22    0.01 0.28 2.74 3.04 3.20 3.38  3.83  2116    1
     ## recovery_time 1.86    0.00 0.16 1.56 1.75 1.85 1.95  2.21  2648    1
     ## 
-    ## Samples were drawn using NUTS(diag_e) at Thu Dec 03 16:54:43 2020.
+    ## Samples were drawn using NUTS(diag_e) at Thu Dec 03 17:12:45 2020.
     ## For each parameter, n_eff is a crude measure of effective sample size,
     ## and Rhat is the potential scale reduction factor on split chains (at 
     ## convergence, Rhat=1).
@@ -991,7 +991,7 @@ We did this in a file `sir_prior.stan`. We will fit the model and sample
 from it:
 
 ``` r
-model_priorcheck <- stan_model("sir_prior.stan")
+model_priorcheck <- stan_model("./StanFiles/sir_prior.stan")
 fit_sir_prior <- sampling(model_priorcheck,
                  data = data_sir, seed = 0, chains = 4)
 ```

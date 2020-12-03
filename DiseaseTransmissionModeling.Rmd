@@ -534,7 +534,7 @@ model <- stan(model_code = sir_model, data = data_sir, iter = niter, chains = 4)
 Or we can construct an instance of S4 class stanmodel from a model specified in Stan's modeling language, which we stored in a file `sir_negbin.stan`. This file simply contains above string.
 
 ```{r compileModel, cache=TRUE}
-model <- stan_model("sir_negbin.stan")
+model <- stan_model("./StanFiles/sir_negbin.stan")
 ```
 
 ```{r drawSamplesFromModel, eval=TRUE}
@@ -632,7 +632,7 @@ cases~ neg_binomial_2(col(to_matrix(y), 2), phi);
 We did this in a file `sir_prior.stan`. We will fit the model and sample from it:
 
 ```{r PriorModel, cache=TRUE}
-model_priorcheck <- stan_model("sir_prior.stan")
+model_priorcheck <- stan_model("./StanFiles/sir_prior.stan")
 fit_sir_prior <- sampling(model_priorcheck,
                  data = data_sir, seed = 0, chains = 4)
 ```

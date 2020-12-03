@@ -15,14 +15,20 @@ output:
 
 ```{r global_options, echo=FALSE}
 knitr::opts_chunk$set(fig.path="Figs/", message=FALSE, warning=FALSE,
-                      echo=TRUE, results="hide", fig.width=11)
+                      echo=TRUE, fig.width=11)
 ```
 
 # Introduction
 
+**Work in Progress**
+
+The following markdown file is inspired by the SIR model from [Bayesian workflow for disease transmission modeling in Stan](https://mc-stan.org/users/documentation/case-studies/boarding_school_case_study.html).
+
+
 ## goal
 
-The goal is to implement a SEIR model. I do not have any epidemilogical and can not
+The goal is to implement a SEIR model in which the parameters are determined
+by a bayesian approach.
 
 
 ## setup and reproducibility
@@ -37,8 +43,6 @@ p_load(
 )
 ```
 
-
-## data
 
 ## data
 
@@ -85,95 +89,97 @@ R(0)  =&  0
 \end{aligned}
 $$
 
+# Bayesian
+
+## Choice of priors
+
+### &beta
+
+### $\alpha$
+
+### $\gamma$
+
 
 # coding
 
-# theory
+## theory
 
-## practice
 
-```{r}
 
-# define model
 
-SEIR_model <- "functions {
-  real[] sir(real t, real[] y, real[] theta, 
-             real[] x_r, int[] x_i) {
 
-      real S = y[1];
-      real E = y[2];
-      real I = y[3];
-      real R = y[4];
-      real N = x_i[1];
-      
-      real beta = theta[1];
-      real alpha = theta[2];
-      real gamma = theta[3];
-      
-      real dS_dt = -beta * I * S / N;
-      real dE_dt =  beta * I * S / N - alpha * E;
-      real dI_dt =  alpha * E - gamma * I;
-      real dR_dt =  gamma * I;
-      
-      return {dS_dt, dE_dt, dI_dt, dR_dt};
-  }
-}
+### practice
 
-data {
-  int<lower=1> n_days;
-  real y0[3];
-  real t0;
-  real ts[n_days];
-  int N;
-  int cases[n_days];
-}
 
-transformed data {
-  real x_r[0];
-  int x_i[1] = { N };
-}
-
-parameters {
-  real<lower=0> gamma;
-  real<lower=0> beta;
-  real<lower=0> phi_inv;
-}
-
-transformed parameters{
-  real y[n_days, 3];
-  real phi = 1. / phi_inv;
-  {
-    real theta[2];
-    theta[1] = beta;
-    theta[2] = gamma;
-
-    y = integrate_ode_rk45(sir, y0, t0, ts, theta, x_r, x_i);
-  }
-}
-
-model {
-  //priors
-  beta ~ normal(2, 1);
-  gamma ~ normal(0.4, 0.5);
-  phi_inv ~ exponential(5);
-  
-  //sampling distribution
-  //col(matrix x, int n) - The n-th column of matrix x. Here the number of infected people 
-  cases ~ neg_binomial_2(col(to_matrix(y), 2), phi);
-}
-
-generated quantities {
-  real R0 = beta / gamma;
-  real recovery_time = 1 / gamma;
-  real pred_cases[n_days];
-  pred_cases = neg_binomial_2_rng(col(to_matrix(y), 2), phi);
-}
-
-"
-```
+We prepare the data
 
 ```{r}
+# data preparation
+# time series of cases
+cases <- df$in_bed  # Number of students in bed
 
+# total count
+N <- 763;
+
+# times
+n_days <- length(cases) 
+t <- seq(0, n_days, by = 1)
+t0 = 0 
+t <- t[-1]
+
+#initial conditions
+i0 <- 1
+e0 <- 0
+s0 <- N - i0
+r0 <- 0
+y0 = c(S = s0, E = e0, I = i0, R = r0)
+
+# data for Stan
+data_sir <- list(n_days = n_days, y0 = y0, t0 = t0, ts = t, N = N, cases = cases)
+
+# number of MCMC steps
+niter <- 2000
 ```
 
+We compile the model an draw samples:
 
+```{r cache=TRUE}
+model <- stan_model("./StanFiles/seir_model.stan")
+
+SEIR_samples <- sampling(model,
+                         data = data_sir,
+                         iter = niter,
+                         chains = 4)
+```
+
+## checking the inference
+
+`Stan` gives us information to evaluate whether the statistical inference is reliable. First we start with a summary table of the results for the parameter of interest. Additionally we will see some useful diagnostics, like `Rhat` and the effective sample size.
+
+```{r basicConvergenceCheck}
+pars=c('beta', 'alpha', 'gamma', "R0", "recovery_time")
+print(SEIR_samples, pars = pars)
+```
+Let us briefly discuss the output above :
+
+- The Gelman-Rubin diagnositc `Rhat` is close to 1, which is a necessary condition for convergence. According to [Brooks and Gelman, 1998]("General methods for monitoring convergence of iterative simulations. Journal of Computational and Graphical Statistics 7: 434–455") an `Rhat`value bigger than 1,2 for any of the model parameters should indicate nonconvergence
+- The effective sample size `n_eff` is "large" the marcov chains should have explored the parameter space well.
+
+Moreover a trace plot can be used to evaluate if the chains were able to explore the parameter space or got stuck in an area:
+
+```{r traceplot}
+traceplot(SEIR_samples, pars = pars)
+```
+
+But we can also check the posterior distribution of our parameters of interest for each marcov chain. Precisely we can check whether they agree with one another or not:
+
+```{r MarcovChainComparison}
+stan_dens(SEIR_samples, pars = pars, separate_chains = TRUE)
+```
+
+Let us recall the meaning of the parameters
+
+- $\beta$ is the infection rate, assumed to be constant,
+- $\alpha$ is the incubation rate, assumed to be constant,
+- $\gamma$ is the recovery rate, assumed to be constant,
+- $R_0$ is the (basic) reproduction number

@@ -1,0 +1,15 @@
+base
+pacman
+tidyverse
+ggplot2
+tibble
+tidyr
+readr
+purrr
+dplyr
+stringr
+forcats
+lubridate
+outbreaks
+StanHeaders
+rstan
