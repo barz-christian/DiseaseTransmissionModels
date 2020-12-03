@@ -1,10 +1,11 @@
 ---
 title: "Disease transition modeling in stan"
 date: "creation date: 29-07-2020, update date: `r lubridate::today()`"
-markdown: kramdown
-
-kramdown:
-  input: GFM
+output:
+  github_document:
+    toc: true
+    toc_depth: 2
+    pandoc_args: --webtex
 ---
 
 ```{r global_options, echo=FALSE}
@@ -110,16 +111,16 @@ The susceptible-infected-recoved model (SIR) splits the population in three time
 - the infected (and infectious)
 - the recovered (and not infectious)
 
-We assume when an susceptible individual comes into contact with an infectious individual, the former becomes infected for some time. Afterwards it recovers and beomes immune.
+We assume when an susceptible individual comes into contact with an infectious individual, the former becomes infected for some time. Afterwards it recovers and becomes immune.
 
 We model the above dynamics by the following system of ordinary differential equations:
 
 $$
-\begin{align}
-\frac{S}{dt} = & -\beta S \frac{I}{N} \\
-\frac{dI}{dt} = & \beta S\frac{I}{N} - \gamma I \\
-\frac{dR}{dt} = & \gamma I
-\end{align}
+\begin{aligned}
+\frac{S}{dt}   = & -\beta S \frac{I}{N} \\
+\frac{dI}{dt}  = & \beta S\frac{I}{N} - \gamma I \\
+\frac{dR}{dt}  = & \gamma I
+\end{aligned}
 $$
 
 
