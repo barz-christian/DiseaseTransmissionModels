@@ -5,6 +5,9 @@ creation date: 29-07-2020, update date: 2020-12-03
 
 # Remark
 
+**This is work in progress\! Still looking for a solution to display
+math codes correctly**
+
 Although this note deals with epidemiological questions, it was written
 to explain how to implement a model based on a system of differential
 equations in `Stan`.
