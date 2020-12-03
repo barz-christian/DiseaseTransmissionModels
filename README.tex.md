@@ -130,7 +130,12 @@ Afterwards it recovers and beomes immune.
 We model the above dynamics by the following system of ordinary
 differential equations:
 
-\(\begin{equation}\frac{S}{dt} = & -\beta S \frac{I}{N} \\ \frac{dI}{dt} = & \beta S\frac{I}{N} - \gamma I \\ \frac{dR}{dt} = & \gamma I \end{equation}\)
+\[
+\begin{aligned}
+\frac{S}{dt} = & -\beta S \frac{I}{N} \\ 
+\frac{dI}{dt} = & \beta S\frac{I}{N} - \gamma I \\ 
+\frac{dR}{dt} = & \gamma I \end{aligned}
+\]
 
 where :
 
