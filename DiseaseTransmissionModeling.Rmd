@@ -257,7 +257,8 @@ and we
 
 # Coding : Stan {.tabset}
 
-In this section show how a system of ordinary differential equations, e.g. a susceptible-infected-recovered model (SIR), can be solved in `Stan`.
+In this section show how a system of ordinary differential equations, e.g. a 
+susceptible-infected-recovered model (SIR), can be solved in `Stan`.
 We assume that the reader has some basic knowledge about `Stan` and/or `rstan`.
 
 ## Coding ODEs in Stan
@@ -267,9 +268,14 @@ Let the following ODE be given :
 $$
 \frac{y}{dt} = f(t,y)
 $$
-where $y$ are the *states*, in our example $y = (S,I,R)$ and $t$ is the time. We denote the initial conditions by $y_0$ and $t_0$ and by $\tau$ the times at which we evaluate the solution.
 
-In order to specify an ODE in Stan, we first code $f$ in the `function block`. This function must observe a strict signature:
+where $y$ are the *states*, more precisely the components of $y$ are the 
+compartments in our example, $y = (S,I,R)$, and $t$ is the time. We denote the 
+initial conditions by $y_0$ and $t_0$ and by $\tau$ the times at which we 
+evaluate the solution.
+
+In order to specify an ODE in Stan, we first code $f$ in the `function block`. 
+This function must observe a strict signature:
 
 ```
 real[] f(real time, real[] state, real[] theta, real[] x_r, int[] x_i)
