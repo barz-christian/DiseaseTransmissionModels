@@ -2,7 +2,16 @@
 title: "Disease transition modeling in stan"
 author: "Christian Barz"
 date: "creation date: 29-07-2020, update date: `r lubridate::today()`"
-output: github_document
+output:
+  html_document:
+    fig_caption: yes
+    toc: TRUE
+    toc_depth: 3
+    number_sections: TRUE
+    toc_float:
+      smooth_scroll: FALSE
+    theme: readable
+    code_download: true
 ---
 
 ```{r global_options, echo=FALSE}
