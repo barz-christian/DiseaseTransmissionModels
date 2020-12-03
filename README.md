@@ -10,7 +10,7 @@ creation date: 29-07-2020, update date: 2020-12-03
   - [Simple susceptile-infected-recovered model
     (SIR)](#simple-susceptile-infected-recovered-model-sir)
       - [data](#data)
-      - [Mathematical transmission model](#SIR_model)
+      - [SIR-Model](#SIR_model)
       - [statistical model](#statistical-model)
   - [Coding : Stan](#coding-stan)
       - [Coding ODEs in Stan](#coding-odes-in-stan)
@@ -42,7 +42,11 @@ Stan](https://mc-stan.org/users/documentation/case-studies/boarding_school_case_
 In this note we want to model the outbreak of a disease using a
 compartment model, more precisely a Susceptible-Infected-Recovered (SIR)
 model, and show how we can solve the corresponding systems of
-differential equations in Stan.
+differential equations in Stan. More precisely we solve systems of
+differential equations, where the parameters of the system are
+considered as random variable. The distribution of these parameters are
+determined by a bayesian model. In this note we want to show how both
+things can be done in `Stan`.
 
 In particular we will compute useful epidemilogical parameters as the
 *basic reproduction rate*
@@ -208,7 +212,7 @@ df %>% ggplot() +
 
 ![](Figs/DataInspection-1.png)<!-- -->
 
-## Mathematical transmission model
+## SIR-Model
 
 The susceptible-infected-recoved model (SIR) splits the population in
 three time-dependent compartments:
@@ -847,7 +851,7 @@ print(fit_sir_negbin, pars = pars)
     ## R0            3.22    0.01 0.28 2.74 3.04 3.20 3.38  3.83  2116    1
     ## recovery_time 1.86    0.00 0.16 1.56 1.75 1.85 1.95  2.21  2648    1
     ## 
-    ## Samples were drawn using NUTS(diag_e) at Thu Dec 03 15:43:19 2020.
+    ## Samples were drawn using NUTS(diag_e) at Thu Dec 03 15:58:31 2020.
     ## For each parameter, n_eff is a crude measure of effective sample size,
     ## and Rhat is the potential scale reduction factor on split chains (at 
     ## convergence, Rhat=1).

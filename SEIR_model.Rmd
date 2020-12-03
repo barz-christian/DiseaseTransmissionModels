@@ -1,0 +1,161 @@
+---
+title: "A SEIR model"
+author: "Christian Barz"
+date: "creation date: 29-07-2020, update date: `r lubridate::today()`"
+output:
+  html_document:
+    fig_caption: yes
+    toc: TRUE
+    toc_depth: 2
+    number_sections: TRUE
+    toc_float:
+      smooth_scroll: FALSE
+    theme: readable
+---
+
+```{r global_options, echo=FALSE}
+knitr::opts_chunk$set(fig.path="Figs/", message=FALSE, warning=FALSE,
+                      echo=TRUE, results="hide", fig.width=11)
+```
+
+# Introduction
+
+## goal
+
+The goal is to implement a SEIR model. I do not have any epidemilogical and can not
+
+
+## setup and reproducibility
+
+```{r}
+library(pacman)
+p_load(
+ tidyverse,  # data wrangling
+  lubridate, # date time operations
+  outbreaks, # data
+  rstan      # use Stan in R
+)
+```
+
+
+## data
+
+## data
+
+In our example we are examine an outbreak of influenza A (H1N1) in 1978 at a british school. The data is freely available in the R package `outbreaks` and consists of the daily number of students in bed spanning over a time interval of 14 days.
+
+There were 763 male students and 512 of them became ill. It is reported that one infected boy started the epidemic, which spreads in the relativly closed community.
+
+We load the data and inspect it:
+
+```{r DataLoad}
+df <- influenza_england_1978_school
+knitr::kable(df)
+```
+
+
+```{r DataInspection}
+df %>% ggplot() + 
+  geom_point(mapping = aes(x = date, y = in_bed)) +
+  labs(y = "number of students in bed")
+```
+
+
+# Theoretical description
+
+We consider a [SEIR-model](https://de.wikipedia.org/wiki/SEIR-Modell) given by the following system of differential equations:
+  
+$$
+\begin{aligned}
+\frac{dS}{dt} = & -\frac{\beta \cdot S \cdot I}{N}\\
+\frac{dE}{dt} = & \frac{\beta \cdot S \cdot I}{N} - \alpha \cdot E\\
+\frac{dI}{dt} = & \alpha\cdot E -\gamma\cdot I\\
+\frac{dR}{dt} = & \gamma\cdot I
+\end{aligned}
+$$
+
+The disease has started wich one infected individual and hence gives rise to the following initial conditions:
+
+$$
+\begin{aligned}
+S(0)  =&  N -1\\
+E(0)  =&  0\\
+I(0)  =&  1\\
+R(0)  =&  0
+\end{aligned}
+$$
+
+
+# coding
+
+```{r}
+
+# define model
+
+SEIR_model <- "functions {
+  real[] sir(real t, real[] y, real[] theta, 
+             real[] x_r, int[] x_i) {
+
+      real S = y[1];
+      real I = y[2];
+      real R = y[3];
+      real N = x_i[1];
+      
+      real beta = theta[1];
+      real gamma = theta[2];
+      
+      real dS_dt = -beta * I * S / N;
+      real dI_dt =  beta * I * S / N - gamma * I;
+      real dR_dt =  gamma * I;
+      
+      return {dS_dt, dI_dt, dR_dt};
+  }
+}
+data {
+  int<lower=1> n_days;
+  real y0[3];
+  real t0;
+  real ts[n_days];
+  int N;
+  int cases[n_days];
+}
+transformed data {
+  real x_r[0];
+  int x_i[1] = { N };
+}
+parameters {
+  real<lower=0> gamma;
+  real<lower=0> beta;
+  real<lower=0> phi_inv;
+}
+transformed parameters{
+  real y[n_days, 3];
+  real phi = 1. / phi_inv;
+  {
+    real theta[2];
+    theta[1] = beta;
+    theta[2] = gamma;
+
+    y = integrate_ode_rk45(sir, y0, t0, ts, theta, x_r, x_i);
+  }
+}
+model {
+  //priors
+  beta ~ normal(2, 1);
+  gamma ~ normal(0.4, 0.5);
+  phi_inv ~ exponential(5);
+  
+  //sampling distribution
+  //col(matrix x, int n) - The n-th column of matrix x. Here the number of infected people 
+  cases ~ neg_binomial_2(col(to_matrix(y), 2), phi);
+}
+generated quantities {
+  real R0 = beta / gamma;
+  real recovery_time = 1 / gamma;
+  real pred_cases[n_days];
+  pred_cases = neg_binomial_2_rng(col(to_matrix(y), 2), phi);
+}
+
+"
+```
+

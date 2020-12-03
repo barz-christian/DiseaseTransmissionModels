@@ -27,7 +27,8 @@ The following markdown file is inspired by the case study [Bayesian workflow for
 
 ## Outline 
 
-In this note we want to model the outbreak of a disease using a compartment model, more precisely a Susceptible-Infected-Recovered (SIR) model, and show how we can solve the corresponding systems of differential equations in Stan.
+In this note we want to model the outbreak of a disease using a compartment model, more precisely a Susceptible-Infected-Recovered (SIR) model, and show how we can solve the corresponding systems of differential equations in Stan. More precisely we solve systems of differential equations, where the parameters of the system are considered as random variable. The distribution of these parameters are determined by a bayesian model.
+In this note we want to show how both things can be done in `Stan`.
 
 In particular we will compute useful epidemilogical parameters as the *basic reproduction rate* $R_0$.
 
@@ -106,7 +107,7 @@ df %>% ggplot() +
   labs(y = "number of students in bed")
 ```
 
-## Mathematical transmission model {#SIR_model}
+## SIR-Model {#SIR_model}
 
 The susceptible-infected-recoved model (SIR) splits the population in three time-dependent compartments:
 
