@@ -5,6 +5,7 @@ output:
   github_document:
     toc: true
     toc_depth: 2
+    pandoc_args: --webtex
 ---
 
 ```{r global_options, echo=FALSE}
