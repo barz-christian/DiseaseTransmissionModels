@@ -1,10 +1,11 @@
 ---
 title: "Disease transition modeling in stan"
 date: "creation date: 29-07-2020, update date: `r lubridate::today()`"
-markdown: kramdown
-
-kramdown:
-  input: GFM
+output:
+  github_document:
+    toc: true
+    toc_depth: 2
+    pandoc_args: --webtex
 ---
 
 ```{r global_options, echo=FALSE}
@@ -114,14 +115,11 @@ We assume when an susceptible individual comes into contact with an infectious i
 
 We model the above dynamics by the following system of ordinary differential equations:
 
-$$
-\begin{align}
+\begin{equation}
 \frac{S}{dt} = & -\beta S \frac{I}{N} \\
 \frac{dI}{dt} = & \beta S\frac{I}{N} - \gamma I \\
 \frac{dR}{dt} = & \gamma I
-\end{align}
-$$
-
+\end{equation}
 
 where :
 
