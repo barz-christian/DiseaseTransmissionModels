@@ -126,10 +126,23 @@ infected (and infectious) - the recovered (and not infectious)
 
 We assume when an susceptible individual comes into contact with an
 infectious individual, the former becomes infected for some time.
-Afterwards it recovers and beomes immune.
+Afterwards it recovers and becomes immune.
 
 We model the above dynamics by the following system of ordinary
 differential equations:
+
+  
+![&#10;\\begin{aligned}&#10;\\frac{S}{dt} = & -\\beta S \\frac{I}{N}
+\\\\&#10;\\frac{dI}{dt} = & \\beta S\\frac{I}{N} - \\gamma I
+\\\\&#10;\\frac{dR}{dt} = & \\gamma
+I&#10;\\end{aligned}&#10;](https://latex.codecogs.com/png.latex?%0A%5Cbegin%7Baligned%7D%0A%5Cfrac%7BS%7D%7Bdt%7D%20%20%20%3D%20%26%20-%5Cbeta%20S%20%5Cfrac%7BI%7D%7BN%7D%20%5C%5C%0A%5Cfrac%7BdI%7D%7Bdt%7D%20%20%3D%20%26%20%5Cbeta%20S%5Cfrac%7BI%7D%7BN%7D%20-%20%5Cgamma%20I%20%5C%5C%0A%5Cfrac%7BdR%7D%7Bdt%7D%20%20%3D%20%26%20%5Cgamma%20I%0A%5Cend%7Baligned%7D%0A
+"
+\\begin{aligned}
+\\frac{S}{dt}   = & -\\beta S \\frac{I}{N} \\\\
+\\frac{dI}{dt}  = & \\beta S\\frac{I}{N} - \\gamma I \\\\
+\\frac{dR}{dt}  = & \\gamma I
+\\end{aligned}
+")  
 
 where :
 
