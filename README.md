@@ -27,9 +27,6 @@ creation date: 29-07-2020, update date: 2020-12-03
 
 # Remark
 
-**This is work in progress\! Still looking for a solution to display
-math codes correctly**
-
 Although this note deals with epidemiological questions, it was written
 to explain how to implement a model based on a system of differential
 equations in `Stan`.
@@ -77,6 +74,26 @@ the solution of a system of ordinary differential equations.
 
 ## setup and reproducibility
 
+``` r
+library(pacman)
+p_load(
+  tidyverse, 
+  lubridate, # date time operations
+  outbreaks, # data
+  rstan, # use Stan in R
+  survminer, # Kaplan meier plot
+  gridExtra, # graphics
+  DT # display tables
+)
+
+rstan_options (auto_write = TRUE)
+options (mc.cores = parallel::detectCores ())
+
+set.seed(3)
+
+sessionInfo()
+```
+
 # Simple susceptile-infected-recovered model (SIR)
 
 A susceptile-infected-recovered model
@@ -96,7 +113,7 @@ for:
     and are immune, so they can no longer be infected with the disease.
 
 **Remark:** A [SEIR model](https://de.wikipedia.org/wiki/SEIR-Modell)
-wouldinclude the latency stage, i.e. the time until an infected person
+would include the latency stage, i.e. the time until an infected person
 can infect others. We will show how to implement a SEIR model using Stan
 in an upcoming note.
 
@@ -116,17 +133,31 @@ relativly closed community.
 
 We load the data and inspect it:
 
+``` r
+df <- influenza_england_1978_school
+datatable(data = df, class = 'cell-border stripe', rownames = FALSE, options = list(dom = 't'))
+```
+
+``` r
+df %>% ggplot() + 
+  geom_point(mapping = aes(x = date, y = in_bed)) +
+  labs(y = "number of students in bed")
+```
+
 ![](Figs/DataInspection-1.png)<!-- -->
 
 ## Mathematical transmission model
 
 The susceptible-infected-recoved model (SIR) splits the population in
-three time-dependent compartments: - the susceptible (infectable) - the
-infected (and infectious) - the recovered (and not infectious)
+three time-dependent compartments:
+
+  - the susceptible (infectable)
+  - the infected (and infectious)
+  - the recovered (and not infectious)
 
 We assume when an susceptible individual comes into contact with an
 infectious individual, the former becomes infected for some time.
-Afterwards it recovers and becomes immune.
+Afterwards it recovers and beomes immune.
 
 We model the above dynamics by the following system of ordinary
 differential equations:
@@ -135,12 +166,12 @@ differential equations:
 ![&#10;\\begin{aligned}&#10;\\frac{S}{dt} = & -\\beta S \\frac{I}{N}
 \\\\&#10;\\frac{dI}{dt} = & \\beta S\\frac{I}{N} - \\gamma I
 \\\\&#10;\\frac{dR}{dt} = & \\gamma
-I&#10;\\end{aligned}&#10;](https://latex.codecogs.com/png.latex?%0A%5Cbegin%7Baligned%7D%0A%5Cfrac%7BS%7D%7Bdt%7D%20%20%20%3D%20%26%20-%5Cbeta%20S%20%5Cfrac%7BI%7D%7BN%7D%20%5C%5C%0A%5Cfrac%7BdI%7D%7Bdt%7D%20%20%3D%20%26%20%5Cbeta%20S%5Cfrac%7BI%7D%7BN%7D%20-%20%5Cgamma%20I%20%5C%5C%0A%5Cfrac%7BdR%7D%7Bdt%7D%20%20%3D%20%26%20%5Cgamma%20I%0A%5Cend%7Baligned%7D%0A
+I&#10;\\end{aligned}&#10;](https://latex.codecogs.com/png.latex?%0A%5Cbegin%7Baligned%7D%0A%5Cfrac%7BS%7D%7Bdt%7D%20%3D%20%26%20-%5Cbeta%20S%20%5Cfrac%7BI%7D%7BN%7D%20%5C%5C%0A%5Cfrac%7BdI%7D%7Bdt%7D%20%3D%20%26%20%5Cbeta%20S%5Cfrac%7BI%7D%7BN%7D%20-%20%5Cgamma%20I%20%5C%5C%0A%5Cfrac%7BdR%7D%7Bdt%7D%20%3D%20%26%20%5Cgamma%20I%0A%5Cend%7Baligned%7D%0A
 "
 \\begin{aligned}
-\\frac{S}{dt}   = & -\\beta S \\frac{I}{N} \\\\
-\\frac{dI}{dt}  = & \\beta S\\frac{I}{N} - \\gamma I \\\\
-\\frac{dR}{dt}  = & \\gamma I
+\\frac{S}{dt} = & -\\beta S \\frac{I}{N} \\\\
+\\frac{dI}{dt} = & \\beta S\\frac{I}{N} - \\gamma I \\\\
+\\frac{dR}{dt} = & \\gamma I
 \\end{aligned}
 ")  
 
@@ -208,17 +239,12 @@ infected person.
 The disease has started wich one infected individual which gives the
 following initial conditions:
 
-  
-![&#10;\\begin{align}&#10;S(0) & = N -1\\\\&#10;I(0) & = 1 \\\\&#10;R(0)
-&
-= 0&#10;\\end{align}&#10;](https://latex.codecogs.com/png.latex?%0A%5Cbegin%7Balign%7D%0AS%280%29%20%26%20%3D%20%20N%20-1%5C%5C%0AI%280%29%20%26%20%3D%20%201%20%5C%5C%0AR%280%29%20%26%20%3D%20%200%0A%5Cend%7Balign%7D%0A
-"
-\\begin{align}
-S(0) & =  N -1\\\\
-I(0) & =  1 \\\\
-R(0) & =  0
-\\end{align}
-")  
+1.  ![S(0) = N
+    -1](https://latex.codecogs.com/png.latex?S%280%29%20%3D%20N%20-1
+    "S(0) = N -1")
+2.  $I(0) = 1 $
+3.  ![R(0) = 0](https://latex.codecogs.com/png.latex?R%280%29%20%3D%200
+    "R(0) = 0")
 
 ### model assumptions
 
@@ -290,7 +316,9 @@ Usually we ask a question like: How likely is hypothesis
 
 This question is equal to
 ![P(\\mathcal{H}|D)](https://latex.codecogs.com/png.latex?P%28%5Cmathcal%7BH%7D%7CD%29
-"P(\\mathcal{H}|D)") and Bayes rule, written in the new notation,   
+"P(\\mathcal{H}|D)") and Bayes rule, written in the new notation,
+
+  
 ![&#10;P(\\mathcal{H}|D)=\\frac{P(D|\\mathcal{H})P(\\mathcal{H})}{P(D)}&#10;](https://latex.codecogs.com/png.latex?%0AP%28%5Cmathcal%7BH%7D%7CD%29%3D%5Cfrac%7BP%28D%7C%5Cmathcal%7BH%7D%29P%28%5Cmathcal%7BH%7D%29%7D%7BP%28D%29%7D%0A
 "
 P(\\mathcal{H}|D)=\\frac{P(D|\\mathcal{H})P(\\mathcal{H})}{P(D)}
@@ -367,12 +395,15 @@ Next we need to specify a prior distribution
 "\\mathcal{H},(\\beta,\\gamma,\\phi)"). We will specify one for each of
 the parameters.
 
-We specify the recovery rate (truncated at 0, see code section) by   
+We specify the recovery rate (truncated at 0, see code section) by
+
+  
 ![&#10;\\gamma\\sim
 normal(0.4,0.5)&#10;](https://latex.codecogs.com/png.latex?%0A%5Cgamma%5Csim%20normal%280.4%2C0.5%29%0A
 "
 \\gamma\\sim normal(0.4,0.5)
 ")  
+
 which expresses our beliefs, that
 ![\\gamma](https://latex.codecogs.com/png.latex?%5Cgamma "\\gamma") has
 to be positive and the probability that the recovery time is bigger than
@@ -612,15 +643,125 @@ predictions for the number of cases in the `generated quantities` block:
 
 ## complete program
 
-We put the stan code into a string
+We put the `Stan` code into a string
+
+``` r
+sir_model <- "
+functions {
+  real[] sir(real t, real[] y, real[] theta, 
+             real[] x_r, int[] x_i) {
+
+      real S = y[1];
+      real I = y[2];
+      real R = y[3];
+      real N = x_i[1];
+      
+      real beta = theta[1];
+      real gamma = theta[2];
+      
+      real dS_dt = -beta * I * S / N;
+      real dI_dt =  beta * I * S / N - gamma * I;
+      real dR_dt =  gamma * I;
+      
+      return {dS_dt, dI_dt, dR_dt};
+  }
+}
+data {
+  int<lower=1> n_days;
+  real y0[3];
+  real t0;
+  real ts[n_days];
+  int N;
+  int cases[n_days];
+}
+transformed data {
+  real x_r[0];
+  int x_i[1] = { N };
+}
+parameters {
+  real<lower=0> gamma;
+  real<lower=0> beta;
+  real<lower=0> phi_inv;
+}
+transformed parameters{
+  real y[n_days, 3];
+  real phi = 1. / phi_inv;
+  {
+    real theta[2];
+    theta[1] = beta;
+    theta[2] = gamma;
+
+    y = integrate_ode_rk45(sir, y0, t0, ts, theta, x_r, x_i);
+  }
+}
+model {
+  //priors
+  beta ~ normal(2, 1);
+  gamma ~ normal(0.4, 0.5);
+  phi_inv ~ exponential(5);
+  
+  //sampling distribution
+  //col(matrix x, int n) - The n-th column of matrix x. Here the number of infected people 
+  cases ~ neg_binomial_2(col(to_matrix(y), 2), phi);
+}
+generated quantities {
+  real R0 = beta / gamma;
+  real recovery_time = 1 / gamma;
+  real pred_cases[n_days];
+  pred_cases = neg_binomial_2_rng(col(to_matrix(y), 2), phi);
+}
+
+"
+```
 
 and put the data in a list
 
+``` r
+# time series of cases
+cases <- df$in_bed  # Number of students in bed
+
+# total count
+N <- 763;
+
+# times
+n_days <- length(cases) 
+t <- seq(0, n_days, by = 1)
+t0 = 0 
+t <- t[-1]
+
+#initial conditions
+i0 <- 1
+s0 <- N - i0
+r0 <- 0
+y0 = c(S = s0, I = i0, R = r0)
+
+# data for Stan
+data_sir <- list(n_days = n_days, y0 = y0, t0 = t0, ts = t, N = N, cases = cases)
+
+# number of MCMC steps
+niter <- 2000
+```
+
 We draw samples from the model by:
+
+``` r
+model <- stan(model_code = sir_model, data = data_sir, iter = niter, chains = 4)
+```
 
 Or we can construct an instance of S4 class stanmodel from a model
 specified in Stan’s modeling language, which we stored in a file
 `sir_negbin.stan`. This file simply contains above string.
+
+``` r
+model <- stan_model("sir_negbin.stan")
+```
+
+``` r
+fit_sir_negbin <- sampling(model,
+                data = data_sir,
+                iter = niter,
+                chains = 4)
+```
 
 ## checking the inference
 
@@ -628,6 +769,11 @@ specified in Stan’s modeling language, which we stored in a file
 inference is reliable. First we start with a summary table of the
 results for the parameter of interest. Additionally we will see some
 useful diagnostics, like `Rhat` and the effective sample size.
+
+``` r
+pars=c('beta', 'gamma', "R0", "recovery_time")
+print(fit_sir_negbin, pars = pars)
+```
 
 Let us briefly discuss the output above :
 
@@ -643,11 +789,19 @@ Let us briefly discuss the output above :
 Moreover a trace plot can be used to evaluate if the chains were able to
 explore the parameter space or got stuck in an area:
 
+``` r
+traceplot(fit_sir_negbin, pars = pars)
+```
+
 ![](Figs/traceplot-1.png)<!-- -->
 
 But we can also check the posterior distribution of our parameters of
 interest for each marcov chain. Precisely we can check whether they
 agree with one another or not:
+
+``` r
+stan_dens(fit_sir_negbin, pars = pars, separate_chains = TRUE)
+```
 
 ![](Figs/MarcovChainComparison-1.png)<!-- -->
 
@@ -678,6 +832,19 @@ interval, which means that 10% of the observed data is expected to fall
 outside of this interval. This *posterior predictive check* allows us to
 verify if the model captures the structure of the data:
 
+``` r
+smr_pred <- cbind(as.data.frame(summary(
+  fit_sir_negbin, pars = "pred_cases", probs = c(0.05, 0.5, 0.95))$summary), t, cases)
+# remove % in the col names
+colnames(smr_pred) <- make.names(colnames(smr_pred)) 
+
+ggplot(smr_pred, mapping = aes(x = t)) +
+  geom_ribbon(aes(ymin = X5., ymax = X95.), fill = "orange", alpha = 0.6) +
+  geom_line(mapping = aes(x = t, y = X50.)) + 
+  geom_point(mapping = aes(y = cases)) +
+  labs(x = "Day", y = "Number of students in bed")
+```
+
 ![](Figs/posteriorPredictiveCheck-1.png)<!-- -->
 
 If we want to access the true number of infected people at each time,
@@ -685,7 +852,22 @@ and not just the number of students in bed, we use the latent variable
 ![I(t)](https://latex.codecogs.com/png.latex?I%28t%29 "I(t)") for which
 we have an estimation.
 
-![](Figs/unnamed-chunk-2-1.png)<!-- -->
+``` r
+#number of infected for each day
+params <- lapply(t, function(i){sprintf("y[%s,2]", i)}) 
+
+smr_y <- as.data.frame(summary(fit_sir_negbin, 
+                               pars = params, probs = c(0.05, 0.5, 0.95))$summary)
+# remove % in the col names
+colnames(smr_y) <- make.names(colnames(smr_y)) 
+
+ggplot(smr_y, mapping = aes(x = t)) +
+  geom_ribbon(aes(ymin = X5., ymax = X95.), fill = "orange", alpha = 0.6) +
+  geom_line(mapping = aes(x = t, y = X50.)) + 
+  labs(x = "Day", y = "Number of infected students")
+```
+
+![](Figs/unnamed-chunk-3-1.png)<!-- -->
 
 # Understand our model by simulated data
 
@@ -720,12 +902,29 @@ same as the final Stan code, without
 We did this in a file `sir_prior.stan`. We will fit the model and sample
 from it:
 
+``` r
+model_priorcheck <- stan_model("sir_prior.stan")
+fit_sir_prior <- sampling(model_priorcheck,
+                 data = data_sir, seed = 0, chains = 4)
+```
+
 This way we got samples from the prior distribution of the parameters,
 which we can visualize. For example we can look at the distribution of
 the ![\\log](https://latex.codecogs.com/png.latex?%5Clog "\\log") of the
 recovery time :
 
-![](Figs/unnamed-chunk-3-1.png)<!-- -->
+``` r
+s_prior <- rstan::extract(fit_sir_prior)
+df_test <- tibble(r = s_prior$recovery_time)
+ggplot(data = df_test) + 
+  geom_histogram(mapping = aes(x = r), bins = 30) + 
+  labs(x = "log(recovery time)") + 
+  geom_vline(xintercept = 0.5, color = "red") + 
+  geom_vline(xintercept = 30, color = "red") +
+  scale_x_log10()
+```
+
+![](Figs/unnamed-chunk-4-1.png)<!-- -->
 
 The red bars showing bounds on the recovery time (1/2 day and 30 days).
 Most of the probality mass is between the red bars but still more
@@ -738,7 +937,17 @@ scale). Here the loose bounds are
 ![0.3](https://latex.codecogs.com/png.latex?0.3 "0.3") and
 ![30](https://latex.codecogs.com/png.latex?30 "30")
 
-![](Figs/unnamed-chunk-4-1.png)<!-- -->
+``` r
+df_test <- tibble(r = s_prior$R0)
+ggplot(data = df_test) + 
+  geom_histogram(mapping = aes(x = r), bins = 30) + 
+  labs(x = "log(R0)") + 
+  geom_vline(xintercept = 0.3, color = "red") + 
+  geom_vline(xintercept = 30, color = "red") + 
+  scale_x_log10()
+```
+
+![](Figs/unnamed-chunk-5-1.png)<!-- -->
 
 ## Can our inference algorithm recover the right parameters?
 

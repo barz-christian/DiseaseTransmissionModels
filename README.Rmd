@@ -10,12 +10,10 @@ output:
 
 ```{r global_options, echo=FALSE}
 knitr::opts_chunk$set(fig.path="Figs/", message=FALSE, warning=FALSE,
-                      echo=FALSE, results="hide", fig.width=11)
+                      echo=TRUE, results="hide", fig.width=11)
 ```
 
 # Remark
-
-**This is work in progress! Still looking for a solution to display math codes correctly**
 
 Although this note deals with epidemiological questions, it was written to explain how to implement a model based on a system of differential equations in `Stan`.
 
@@ -49,7 +47,7 @@ The time-dependent number of people in each compartment will be given as the sol
 
 ## setup and reproducibility
 
-```{r reproducibility}
+```{r echo=TRUE}
 library(pacman)
 p_load(
   tidyverse, 
@@ -80,7 +78,7 @@ A susceptile-infected-recovered model [SIR](https://de.wikipedia.org/wiki/SIR-Mo
 	
 + R - recovered. These are people who have recovered from the disease and are immune, so they can no longer be infected with the disease. 
 
-**Remark:** A [SEIR model](https://de.wikipedia.org/wiki/SEIR-Modell) wouldinclude the latency stage, i.e. the time until an infected person can infect others. We will show how to implement a SEIR model using Stan in an upcoming note. 
+**Remark:** A [SEIR model](https://de.wikipedia.org/wiki/SEIR-Modell) would include the latency stage, i.e. the time until an infected person can infect others. We will show how to implement a SEIR model using Stan in an upcoming note. 
 
 A complete discussion of a SIR-model is given in the subsection [Mathematical transmission model](#SIR_model)
 
@@ -107,19 +105,20 @@ df %>% ggplot() +
 ## Mathematical transmission model {#SIR_model}
 
 The susceptible-infected-recoved model (SIR) splits the population in three time-dependent compartments:
+
 - the susceptible (infectable)
 - the infected (and infectious)
 - the recovered (and not infectious)
 
-We assume when an susceptible individual comes into contact with an infectious individual, the former becomes infected for some time. Afterwards it recovers and becomes immune.
+We assume when an susceptible individual comes into contact with an infectious individual, the former becomes infected for some time. Afterwards it recovers and beomes immune.
 
 We model the above dynamics by the following system of ordinary differential equations:
 
 $$
 \begin{aligned}
-\frac{S}{dt}   = & -\beta S \frac{I}{N} \\
-\frac{dI}{dt}  = & \beta S\frac{I}{N} - \gamma I \\
-\frac{dR}{dt}  = & \gamma I
+\frac{S}{dt} = & -\beta S \frac{I}{N} \\
+\frac{dI}{dt} = & \beta S\frac{I}{N} - \gamma I \\
+\frac{dR}{dt} = & \gamma I
 \end{aligned}
 $$
 
@@ -153,13 +152,9 @@ The number $R_0=\frac{\beta}{\gamma}$ is called the *basic reproduction number*.
 
 The disease has started wich one infected individual which gives the following initial conditions:
 
-$$
-\begin{align}
-S(0) & =  N -1\\
-I(0) & =  1 \\
-R(0) & =  0
-\end{align}
-$$
+1. $S(0)  =  N -1$
+2. $I(0)  =  1 $
+3. $R(0)  =  0$
 
 ### model assumptions
 
@@ -189,6 +184,7 @@ To understand Bayes rule bettter we slightly change our notation (point of view)
 Usually we ask a question like: How likely is hypothesis $\mathcal{H}$ given the data $D$?
 
 This question is equal to $P(\mathcal{H}|D)$  and Bayes rule, written in the new notation,
+
 $$
 P(\mathcal{H}|D)=\frac{P(D|\mathcal{H})P(\mathcal{H})}{P(D)}
 $$
@@ -217,9 +213,11 @@ This gives us $P(D|\mathcal{H})$ with the parameters of our model $\mathcal{H}=(
 Next we need to specify a prior distribution $P(\mathcal{H})$ with $\mathcal{H},(\beta,\gamma,\phi)$. We will specify one for each of the parameters. 
 
 We specify the recovery rate (truncated at 0, see code section) by
+
 $$
 \gamma\sim normal(0.4,0.5)
 $$ 
+
 which expresses our beliefs, that $\gamma$ has to be positive and the probability that the recovery time is bigger than a day is a priori 90%. Of course we can change this prior according to expert knowledge and if more information become available.
 
 The "infection rate" is specified by
@@ -413,7 +411,7 @@ generated quantities {
 
 ## complete program
 
-We put the stan code into a string
+We put the `Stan` code into a string
 
 ```{r completeStanModel}
 sir_model <- "
@@ -436,7 +434,6 @@ functions {
       return {dS_dt, dI_dt, dR_dt};
   }
 }
-
 data {
   int<lower=1> n_days;
   real y0[3];
@@ -445,10 +442,41 @@ data {
   int N;
   int cases[n_days];
 }
-
 transformed data {
   real x_r[0];
   int x_i[1] = { N };
+}
+parameters {
+  real<lower=0> gamma;
+  real<lower=0> beta;
+  real<lower=0> phi_inv;
+}
+transformed parameters{
+  real y[n_days, 3];
+  real phi = 1. / phi_inv;
+  {
+    real theta[2];
+    theta[1] = beta;
+    theta[2] = gamma;
+
+    y = integrate_ode_rk45(sir, y0, t0, ts, theta, x_r, x_i);
+  }
+}
+model {
+  //priors
+  beta ~ normal(2, 1);
+  gamma ~ normal(0.4, 0.5);
+  phi_inv ~ exponential(5);
+  
+  //sampling distribution
+  //col(matrix x, int n) - The n-th column of matrix x. Here the number of infected people 
+  cases ~ neg_binomial_2(col(to_matrix(y), 2), phi);
+}
+generated quantities {
+  real R0 = beta / gamma;
+  real recovery_time = 1 / gamma;
+  real pred_cases[n_days];
+  pred_cases = neg_binomial_2_rng(col(to_matrix(y), 2), phi);
 }
 
 "
