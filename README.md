@@ -94,6 +94,51 @@ set.seed(3)
 sessionInfo()
 ```
 
+    ## R version 4.0.2 (2020-06-22)
+    ## Platform: x86_64-w64-mingw32/x64 (64-bit)
+    ## Running under: Windows 10 x64 (build 19041)
+    ## 
+    ## Matrix products: default
+    ## 
+    ## locale:
+    ## [1] LC_COLLATE=German_Germany.1252  LC_CTYPE=German_Germany.1252   
+    ## [3] LC_MONETARY=German_Germany.1252 LC_NUMERIC=C                   
+    ## [5] LC_TIME=German_Germany.1252    
+    ## 
+    ## attached base packages:
+    ## [1] stats     graphics  grDevices utils     datasets  methods   base     
+    ## 
+    ## other attached packages:
+    ##  [1] DT_0.16              gridExtra_2.3        survminer_0.4.8     
+    ##  [4] ggpubr_0.4.0         rstan_2.21.2         StanHeaders_2.21.0-6
+    ##  [7] outbreaks_1.9.0      lubridate_1.7.9.2    forcats_0.5.0       
+    ## [10] stringr_1.4.0        dplyr_1.0.2          purrr_0.3.4         
+    ## [13] readr_1.4.0          tidyr_1.1.2          tibble_3.0.4        
+    ## [16] ggplot2_3.3.2        tidyverse_1.3.0      pacman_0.5.1        
+    ## 
+    ## loaded via a namespace (and not attached):
+    ##  [1] matrixStats_0.57.0 fs_1.5.0           httr_1.4.2         tools_4.0.2       
+    ##  [5] backports_1.2.0    R6_2.5.0           DBI_1.1.0          colorspace_2.0-0  
+    ##  [9] withr_2.3.0        tidyselect_1.1.0   prettyunits_1.1.1  processx_3.4.4    
+    ## [13] curl_4.3           compiler_4.0.2     cli_2.2.0          rvest_0.3.6       
+    ## [17] xml2_1.3.2         scales_1.1.1       survMisc_0.5.5     callr_3.5.1       
+    ## [21] digest_0.6.27      foreign_0.8-80     rmarkdown_2.5      rio_0.5.16        
+    ## [25] pkgconfig_2.0.3    htmltools_0.5.0    dbplyr_2.0.0       htmlwidgets_1.5.2 
+    ## [29] rlang_0.4.8        readxl_1.3.1       rstudioapi_0.13    generics_0.1.0    
+    ## [33] zoo_1.8-8          jsonlite_1.7.1     zip_2.1.1          car_3.0-10        
+    ## [37] inline_0.3.16      magrittr_2.0.1     loo_2.3.1          Matrix_1.2-18     
+    ## [41] Rcpp_1.0.5         munsell_0.5.0      fansi_0.4.1        abind_1.4-5       
+    ## [45] lifecycle_0.2.0    stringi_1.5.3      yaml_2.2.1         carData_3.0-4     
+    ## [49] pkgbuild_1.1.0     grid_4.0.2         parallel_4.0.2     crayon_1.3.4      
+    ## [53] lattice_0.20-41    splines_4.0.2      haven_2.3.1        hms_0.5.3         
+    ## [57] knitr_1.30         ps_1.4.0           pillar_1.4.7       ggsignif_0.6.0    
+    ## [61] codetools_0.2-16   stats4_4.0.2       reprex_0.3.0       glue_1.4.2        
+    ## [65] evaluate_0.14      V8_3.4.0           data.table_1.13.2  RcppParallel_5.0.2
+    ## [69] modelr_0.1.8       vctrs_0.3.5        cellranger_1.1.0   gtable_0.3.0      
+    ## [73] km.ci_0.5-2        assertthat_0.2.1   xfun_0.19          openxlsx_4.2.3    
+    ## [77] xtable_1.8-4       broom_0.7.2        rstatix_0.6.0      survival_3.1-12   
+    ## [81] KMsurv_0.1-5       ellipsis_0.3.1
+
 # Simple susceptile-infected-recovered model (SIR)
 
 A susceptile-infected-recovered model
@@ -135,8 +180,25 @@ We load the data and inspect it:
 
 ``` r
 df <- influenza_england_1978_school
-datatable(data = df, class = 'cell-border stripe', rownames = FALSE, options = list(dom = 't'))
+knitr::kable(df)
 ```
+
+| date       | in\_bed | convalescent |
+| :--------- | ------: | -----------: |
+| 1978-01-22 |       3 |            0 |
+| 1978-01-23 |       8 |            0 |
+| 1978-01-24 |      26 |            0 |
+| 1978-01-25 |      76 |            0 |
+| 1978-01-26 |     225 |            9 |
+| 1978-01-27 |     298 |           17 |
+| 1978-01-28 |     258 |          105 |
+| 1978-01-29 |     233 |          162 |
+| 1978-01-30 |     189 |          176 |
+| 1978-01-31 |     128 |          166 |
+| 1978-02-01 |      68 |          150 |
+| 1978-02-02 |      29 |           85 |
+| 1978-02-03 |      14 |           47 |
+| 1978-02-04 |       4 |           20 |
 
 ``` r
 df %>% ggplot() + 
@@ -774,6 +836,21 @@ useful diagnostics, like `Rhat` and the effective sample size.
 pars=c('beta', 'gamma', "R0", "recovery_time")
 print(fit_sir_negbin, pars = pars)
 ```
+
+    ## Inference for Stan model: sir_negbin.
+    ## 4 chains, each with iter=2000; warmup=1000; thin=1; 
+    ## post-warmup draws per chain=1000, total post-warmup draws=4000.
+    ## 
+    ##               mean se_mean   sd 2.5%  25%  50%  75% 97.5% n_eff Rhat
+    ## beta          1.74    0.00 0.05 1.64 1.70 1.73 1.77  1.85  2005    1
+    ## gamma         0.54    0.00 0.05 0.45 0.51 0.54 0.57  0.64  2670    1
+    ## R0            3.22    0.01 0.28 2.74 3.04 3.20 3.38  3.83  2116    1
+    ## recovery_time 1.86    0.00 0.16 1.56 1.75 1.85 1.95  2.21  2648    1
+    ## 
+    ## Samples were drawn using NUTS(diag_e) at Thu Dec 03 15:43:19 2020.
+    ## For each parameter, n_eff is a crude measure of effective sample size,
+    ## and Rhat is the potential scale reduction factor on split chains (at 
+    ## convergence, Rhat=1).
 
 Let us briefly discuss the output above :
 

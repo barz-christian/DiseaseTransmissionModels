@@ -15,8 +15,11 @@ output:
 ---
 
 ```{r global_options, echo=FALSE}
-knitr::opts_chunk$set(fig.path="Figs/", message=FALSE, warning=FALSE,
-                      echo=TRUE, results="hide", fig.width=11)
+knitr::opts_chunk$set(fig.path="Figs/", 
+                      message=FALSE, 
+                      warning=FALSE,
+                      echo=TRUE, 
+                      fig.width=11)
 ```
 
 # Remark

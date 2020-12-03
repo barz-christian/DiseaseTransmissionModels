@@ -9,8 +9,12 @@ output:
 ---
 
 ```{r global_options, echo=FALSE}
-knitr::opts_chunk$set(fig.path="Figs/", message=FALSE, warning=FALSE,
-                      echo=TRUE, results="hide", fig.width=11)
+knitr::opts_chunk$set(fig.path="Figs/", 
+                      message=FALSE,
+                      warning=FALSE,
+                      echo=TRUE, 
+                      #results="hide", 
+                      fig.width=11)
 ```
 
 # Remark
@@ -47,7 +51,7 @@ The time-dependent number of people in each compartment will be given as the sol
 
 ## setup and reproducibility
 
-```{r echo=TRUE}
+```{r}
 library(pacman)
 p_load(
   tidyverse, 
@@ -92,7 +96,7 @@ We load the data and inspect it:
 
 ```{r DataLoad}
 df <- influenza_england_1978_school
-datatable(data = df, class = 'cell-border stripe', rownames = FALSE, options = list(dom = 't'))
+knitr::kable(df)
 ```
 
 
