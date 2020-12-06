@@ -1,0 +1,21 @@
+---
+title: "Compartment models"
+author: "Christian Barz"
+date: "created: 2020-12-05, last updated: `r lubridate::today()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Summary
+
+In this note I want to collect a discription of different [compartment models](https://en.wikipedia.org/wiki/Multi-compartment_model). In a compartment model the population is splited into 'disjoint' subset, called *compartments*, and the transition between the compartments is described by a system of differential equations.
+
+# Compartment models
+
+## SIR model
+
+## 
